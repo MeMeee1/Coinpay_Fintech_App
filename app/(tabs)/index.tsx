@@ -1,74 +1,118 @@
-import { Image, StyleSheet, Platform } from 'react-native';
+import React, { useState, useRef } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Image, FlatList, Dimensions } from 'react-native';
 
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+const onboardingData = [
+  { title: 'Trusted by millions of people, part of one', image: require('@/assets/images/Coinpay_Img_Three.png') },
+  { title: 'Spend money abroad, and track your expense', image: require('@/assets/images/Coinpay_Img_Two.png') },
+  { title: 'Receive Money From Anywhere In The World', image: require('@/assets/images/Coinpay_Img_One.png') },
+];
 
-export default function HomeScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12'
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          Tap the Explore tab to learn more about what's included in this starter app.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          When you're ready, run{' '}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+const { width } = Dimensions.get('window');
+
+const App = () => {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const flatListRef = useRef(null);
+
+  const renderItem = ({ item }) => (
+    <View style={styles.slide}>
+      <Image source={item.image} style={styles.image} />
+    </View>
   );
-}
+
+  const renderDotIndicator = () => (
+    <View style={styles.dotContainer}>
+      {onboardingData.map((_, idx) => (
+        <View key={idx} style={[styles.dot, currentIndex === idx && styles.activeDot]} />
+      ))}
+    </View>
+  );
+
+  const onScroll = (event) => {
+    const index = Math.round(event.nativeEvent.contentOffset.x / width);
+    setCurrentIndex(index);
+  };
+
+  const handleNext = () => {
+    const nextIndex = currentIndex < onboardingData.length - 1 ? currentIndex + 1 : 0;
+    setCurrentIndex(nextIndex);
+    flatListRef.current.scrollToIndex({ index: nextIndex });
+  };
+
+  return (
+    <View style={styles.container}>
+      <FlatList
+        ref={flatListRef}
+        data={onboardingData}
+        renderItem={renderItem}
+        keyExtractor={(item, index) => index.toString()}
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        onScroll={onScroll}
+        scrollEventThrottle={16}
+      />
+      {renderDotIndicator()}
+      <Text style={styles.title}>{onboardingData[currentIndex].title}</Text>
+      <TouchableOpacity style={styles.button} onPress={handleNext}>
+        <Text style={styles.buttonText}>Next</Text>
+      </TouchableOpacity>
+    </View>
+  );
+};
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
+  container: {
+    flex: 1,
+    justifyContent: 'space-between',
     alignItems: 'center',
-    gap: 8,
+    backgroundColor: '#F5FCFF',
+    paddingTop: 100,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  slide: {
+    width,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  image: {
+    width: '100%',
+    height: '70%',
+    resizeMode: 'contain',
+  },
+  dotContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+  },
+  dot: {
+    width: 30,
+    height: 5,
+    borderRadius: 10,
+    backgroundColor: '#ccc',
+    marginHorizontal: 3,
+  },
+  activeDot: {
+    width: 10,
+    height: 7,
+    backgroundColor: '#007AFF',
+  },
+  title: {
+    fontSize: 24,
+    textAlign: 'center',
+    marginHorizontal: 20,
+    marginVertical: 20,
+  },
+  button: {
+    backgroundColor: '#007AFF',
+    paddingVertical: 15,
+    paddingHorizontal: 40,
+    borderRadius: 50,
+    width: '80%',
+    marginBottom: 20,
+  },
+  buttonText: {
+    color: '#FFFFFF',
+    textAlign: 'center',
+    fontSize: 16,
   },
 });
+
+export default App;
