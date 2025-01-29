@@ -54,7 +54,7 @@ const App = () => {
       {renderDotIndicator()}
       <Text style={styles.title}>{onboardingData[currentIndex].title}</Text>
       <TouchableOpacity style={styles.button} onPress={handleNext}>
-        <Text style={styles.buttonText}>Next</Text>
+        <Text style={styles.buttonText}> {currentIndex === onboardingData.length - 1 ? "Continue" : "Next"}</Text>
       </TouchableOpacity>
     </View>
   );
